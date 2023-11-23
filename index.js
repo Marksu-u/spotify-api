@@ -4,11 +4,11 @@ require("express-async-errors");
 const express = require("express");
 const cors = require("cors");
 
-// const connexion = require("./database");
+const connexion = require("./database");
 
 
 const app = express();
-// connexion();
+connexion();
 app.use(cors());
 app.use(express.json());
 
