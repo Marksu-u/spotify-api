@@ -1,6 +1,7 @@
-const router = require('express').Router();
+import express from 'express';
 
-const {Song} = require('../models/song');
+import Song from '../models/song.js';
+const router = express.Router();
 
 // Get all songs
 router.get('/', async (req, res) => {
@@ -8,4 +9,4 @@ router.get('/', async (req, res) => {
   res.status(200).send({data: songs});
 });
 
-module.exports = router;
+export default router;

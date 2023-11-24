@@ -1,6 +1,8 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const albumSchema = new mongoose.Schema({
+const {Schema, model} = mongoose;
+
+const albumSchema = new Schema({
   title: {
     type: String,
     required: true,
@@ -8,4 +10,6 @@ const albumSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('Album', albumSchema);
+const Album = model('Album', albumSchema);
+
+export default Album;

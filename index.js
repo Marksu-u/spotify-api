@@ -1,17 +1,16 @@
-require('dotenv').config();
-require('express-async-errors');
+import dotenv from 'dotenv';
+import 'express-async-errors';
+import express from 'express';
+import cors from 'cors';
+import connectToDatabase from './database.js';
+import songRoutes from './routes/songs.js';
 
-const express = require('express');
-const cors = require('cors');
-const connexion = require('./database');
-
-const songRoutes = require('./routes/songs');
-
+dotenv.config();
 const app = express();
-connexion();
+
+connectToDatabase();
 app.use(cors());
 app.use(express.json());
-
 app.use('/api/songs/', songRoutes);
 
 const port = process.env.PORT || 8080;

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
@@ -30,6 +31,9 @@
     "mongoose": "^8.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.23.3",
+    "@babel/node": "^7.22.19",
+    "@babel/preset-env": "^7.23.3",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-react-app": "^7.0.1",

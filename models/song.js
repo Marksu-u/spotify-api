@@ -1,6 +1,8 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const songSchema = new mongoose.Schema({
+const {Schema, model} = mongoose;
+
+const songSchema = new Schema({
   title: {
     type: String,
     required: true,
@@ -14,4 +16,6 @@ const songSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model('Song', songSchema);
+const Song = model('Song', songSchema);
+
+export default Song;
