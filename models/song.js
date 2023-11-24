@@ -1,8 +1,6 @@
 import mongoose from 'mongoose';
 
-const {Schema, model} = mongoose;
-
-const songSchema = new Schema({
+const songSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
@@ -10,12 +8,33 @@ const songSchema = new Schema({
     maxLength: 50,
   },
   artist: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Artist',
+    required: true,
+  },
+  album: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Album',
+    required: true,
+  },
+  duration: {
+    type: Number,
+    required: true,
+  },
+  genre: {
     type: String,
     required: true,
-    maxLength: 255,
+  },
+  year: {
+    type: Number,
+    required: true,
+  },
+  thumbnail: {
+    data: Buffer, // Stocke les données binaires de l'image
+    contentType: String,
   },
 });
 
-const Song = model('Song', songSchema);
+const Song = mongoose.model('Song', songSchema);
 
 export default Song;

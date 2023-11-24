@@ -1,3 +1,6 @@
 /node_modules
+/data/1001
+/data/test.rar
 
 .env
+logs/
