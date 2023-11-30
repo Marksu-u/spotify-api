@@ -1,15 +1,19 @@
 import mongoose from 'mongoose';
 
-const {Schema, model} = mongoose;
-
-const albumSchema = new Schema({
+const albumSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
-    maxLenght: 255,
   },
+  artist: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Artist',
+    required: true,
+  },
+  releaseDate: Date,
+  coverImage: String,
 });
 
-const Album = model('Album', albumSchema);
+const Album = mongoose.model('Album', albumSchema);
 
 export default Album;

@@ -1,15 +1,13 @@
 import mongoose from 'mongoose';
 
-const {Schema, model} = mongoose;
-
-const artistSchema = new Schema({
+const artistSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    maxLenght: 255,
+    unique: true,
   },
 });
 
-const Artist = model('Artist', artistSchema);
+const Artist = mongoose.model('Artist', artistSchema);
 
 export default Artist;

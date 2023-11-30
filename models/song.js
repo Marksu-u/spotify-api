@@ -4,8 +4,6 @@ const songSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
-    minLength: 5,
-    maxLength: 50,
   },
   artist: {
     type: mongoose.Schema.Types.ObjectId,
@@ -15,10 +13,10 @@ const songSchema = new mongoose.Schema({
   album: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Album',
-    required: true,
   },
-  duration: {
-    type: Number,
+  duration: Number,
+  fileUrl: {
+    type: String,
     required: true,
   },
   genre: {
@@ -27,11 +25,7 @@ const songSchema = new mongoose.Schema({
   },
   year: {
     type: Number,
-    required: true,
-  },
-  thumbnail: {
-    data: Buffer, // Stocke les données binaires de l'image
-    contentType: String,
+    maxLength: 4,
   },
 });
 
