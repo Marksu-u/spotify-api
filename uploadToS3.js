@@ -5,7 +5,6 @@ import path from 'path';
 
 dotenv.config();
 
-// Configurer le SDK AWS
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -35,7 +34,6 @@ const uploadFileToS3 = filePath => {
   });
 };
 
-// Lire et envoyer les fichiers .m4a
 fs.readdir(directoryPath, (err, files) => {
   if (err) {
     throw err;

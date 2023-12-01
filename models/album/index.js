@@ -10,8 +10,14 @@ const albumSchema = new mongoose.Schema({
     ref: 'Artist',
     required: true,
   },
-  releaseDate: Date,
-  coverImage: String,
+  date: {
+    type: String,
+  },
+  genre: [String],
+  image: {
+    data: Buffer,
+    contentType: String, // type of the image (e.g., 'image/jpeg')
+  },
 });
 
 const Album = mongoose.model('Album', albumSchema);

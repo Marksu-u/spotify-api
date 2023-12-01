@@ -1,4 +1,4 @@
-import Album from '../models/album';
+import Album from '../../models/album/index.js';
 
 export const listAlbums = async (req, res) => {
   const albums = await Album.find({});
@@ -6,9 +6,9 @@ export const listAlbums = async (req, res) => {
 };
 
 export const getAlbums = async (req, res) => {
-  const song = await Album.findById(req.params.id);
-  if (!song) return res.status(404).send('Album not found');
-  res.send(song);
+  const album = await Album.findById(req.params.id);
+  if (!album) return res.status(404).send('Album not found');
+  res.send(album);
 };
 
 export const createAlbum = async (req, res) => {

@@ -1,4 +1,4 @@
-import Artist from '../models/artist';
+import Artist from '../../models/artist/index.js';
 
 export const listArtists = async (req, res) => {
   const artists = await Artist.find({});
