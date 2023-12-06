@@ -6,6 +6,7 @@ import 'express-async-errors';
 import connectToDatabase from './middlewares/mongodb.js';
 
 import s3Router from './router/s3Router.js';
+import audioRoutes from './router/audio.routes.js';
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/aws', s3Router);
+app.use('/api/audio', audioRoutes);
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => console.log(`Serveur NodeJS sur le port ${port}...`));

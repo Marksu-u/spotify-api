@@ -16,7 +16,7 @@
     ]
   },
   "scripts": {
-    "music": "node extractMusicMetadata.js",
+    "music": "node data/extractMusicMetadata.js",
     "dev": "nodemon --exec babel-node index.js",
     "test": "echo \"Error: no test specified\"",
     "prepare": "husky install"
@@ -36,6 +36,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "fs": "0.0.1-security",
     "mongoose": "^8.0.1",
+    "multer": "1.4.5-lts.1",
     "music-metadata": "^7.14.0",
     "path": "^0.12.7",
     "redis": "^4.6.11",

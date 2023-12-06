@@ -26,7 +26,8 @@ const logger = winston.createLogger({
 });
 
 // Répertoire contenant vos fichiers musicaux
-const rootDirectory = 'data/1001/';
+const rootDirectory =
+  'data/1001/0001. Frank Sinatra - In The Wee Small Hours (1955)/1/';
 
 // Fonction récursive pour parcourir tous les fichiers audio
 const extractMusicMetadataRecursive = async directoryPath => {
@@ -40,7 +41,7 @@ const extractMusicMetadataRecursive = async directoryPath => {
         await extractMusicMetadataRecursive(filePath); // Utilisez await pour la récursion
       } else if (file.endsWith('.mp3') || file.endsWith('.m4a')) {
         const metadata = await mm.parseFile(filePath);
-        logger.info(`Nom du fichier: ${file}`);
+        logger.info(`Fichier : ${file}`);
         logger.info('Métadonnées extraites:');
         logger.info(metadata);
         logger.info('---------------------------------------');
