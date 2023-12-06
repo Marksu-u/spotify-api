@@ -6,7 +6,8 @@ jobs:
     steps:
       - checkout
       - run: npm install
-      - run: npm test # Replace with your test command
+      - run: npm test
+      - run: npm build
 workflows:
   version: 2
   build_and_test:
