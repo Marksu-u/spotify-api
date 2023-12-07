@@ -49,12 +49,15 @@ export const uploadAudio = async (req, res) => {
     const file = req.file;
     const {common} = await mm.parseFile(file.path).then(metadata => metadata);
 
-    const outputFilePath = `${file.path}.m4a`;
+    const outputFilePath = `${file.path}.ogg`;
     await new Promise((resolve, reject) => {
       Ffmpeg(file.path)
-        .toFormat('m4a')
+        .toFormat('ogg')
         .on('end', resolve)
-        .on('error', reject)
+        .on('error', err => {
+          console.error('Error during conversion:', err);
+          reject(err);
+        })
         .save(outputFilePath);
     });
 
@@ -95,15 +98,15 @@ export const uploadAudio = async (req, res) => {
           : undefined,
       },
     });
-    await newAudio.save();
 
-    const s3Key = `audio-files/${newAudio._id}`;
+    await newAudio.save();
+    const s3Key = `audio-files/${newAudio._id}.ogg`;
     newAudio.s3Key = s3Key;
     await newAudio.save();
 
     const s3Params = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `audio-files/${newAudio._id}.m4a`,
+      Key: `audio-files/${newAudio._id}.ogg`,
       Body: fs.createReadStream(outputFilePath),
     };
 
@@ -130,7 +133,44 @@ export const streamAudio = async (req, res) => {
     if (!audio) {
       return res.status(404).send({message: 'Audio not found'});
     }
+
+    const s3Params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: audio.s3Key,
+    };
+
+    const headData = await s3.headObject(s3Params).promise();
+    const fileSize = headData.ContentLength;
+    const range = req.headers.range;
+
+    if (range) {
+      const parts = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+      const chunksize = end - start + 1;
+      const fileStream = s3
+        .getObject({...s3Params, Range: `bytes=${start}-${end}`})
+        .createReadStream();
+
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': 'audio/mpeg',
+      });
+
+      fileStream.pipe(res);
+    } else {
+      res.writeHead(200, {
+        'Content-Length': fileSize,
+        'Content-Type': 'audio/mpeg',
+      });
+
+      s3.getObject(s3Params).createReadStream().pipe(res);
+    }
   } catch (err) {
-    res.status(500).send({message: err.message});
+    console.error('Error in streaming audio:', err);
+    res.status(500).send({message: 'Error in streaming audio'});
   }
 };
