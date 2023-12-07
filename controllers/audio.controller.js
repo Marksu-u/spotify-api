@@ -1,44 +1,95 @@
 import AWS from 'aws-sdk';
+import dotenv from 'dotenv';
 import mm from 'music-metadata';
 import fs from 'fs';
+import Ffmpeg from 'fluent-ffmpeg';
 import Audio from '../models/audio.model.js';
 import Album from '../models/album.model.js';
 import Artist from '../models/artist.model.js';
 
+dotenv.config();
 const s3 = new AWS.S3();
+
+Ffmpeg.setFfmpegPath('/opt/homebrew/Cellar/ffmpeg/6.0_1/bin/ffmpeg');
+
+export const getAudios = async (req, res) => {
+  try {
+    const audios = await Audio.find();
+    res.json(audios);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
+export const deleteAudio = async (req, res) => {
+  try {
+    const audioId = req.params.id;
+    const audio = await Audio.findById(audioId);
+
+    if (!audio) {
+      return res.status(404).send({message: 'Audio not found'});
+    }
+
+    const s3Params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: audio.s3Key,
+    };
+    await s3.deleteObject(s3Params).promise();
+
+    await Audio.findByIdAndDelete(audioId);
+
+    res.send({message: 'Audio and corresponding S3 file deleted successfully'});
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
 
 export const uploadAudio = async (req, res) => {
   try {
     const file = req.file;
     const {common} = await mm.parseFile(file.path).then(metadata => metadata);
 
-    // Find or create the artist
+    const outputFilePath = `${file.path}.ogg`;
+    await new Promise((resolve, reject) => {
+      Ffmpeg(file.path)
+        .toFormat('ogg')
+        .on('end', resolve)
+        .on('error', err => {
+          console.error('Error during conversion:', err);
+          reject(err);
+        })
+        .save(outputFilePath);
+    });
+
+    const artistName = common.artist || 'Various Artists';
+    const albumTitle = common.album || 'Unknown Album';
+    const audioGenre = common.genre || 'Unknown Genre';
+    const audioDate = common.date || '2023';
+
     const artist = await Artist.findOneAndUpdate(
-      {name: common.artist},
-      {name: common.artist},
+      {name: artistName},
+      {name: artistName},
       {upsert: true, new: true},
     );
 
-    // Find or create the album with a reference to the artist
     const album = await Album.findOneAndUpdate(
-      {title: common.album, artist: artist._id},
+      {title: albumTitle, artist: artist._id},
       {
-        title: common.album,
+        title: albumTitle,
         artist: artist._id,
-        releaseDate: new Date(common.date),
-        genre: common.genre,
+        releaseDate: new Date(audioDate),
+        genre: audioGenre,
       },
       {upsert: true, new: true},
     );
 
-    // Create a new Audio document
     const newAudio = new Audio({
       filename: file.originalname,
       metadata: {
         album: album._id,
         artist: artist._id,
-        date: common.date,
-        genre: common.genre,
+        date: audioDate,
+        genre: audioGenre,
         picture: common.picture?.length
           ? {
               data: common.picture[0].data,
@@ -47,19 +98,21 @@ export const uploadAudio = async (req, res) => {
           : undefined,
       },
     });
+
+    await newAudio.save();
+    const s3Key = `audio-files/${newAudio._id}.ogg`;
+    newAudio.s3Key = s3Key;
     await newAudio.save();
 
-    // Upload vers AWS
     const s3Params = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `audio-files/${newAudio._id}-${file.originalname}`,
-      Body: fs.createReadStream(file.path),
+      Key: `audio-files/${newAudio._id}.ogg`,
+      Body: fs.createReadStream(outputFilePath),
     };
 
     const s3Upload = await s3.upload(s3Params).promise();
-
-    // On supprime le fichier local après traitement
     fs.unlinkSync(file.path);
+    fs.unlinkSync(outputFilePath);
 
     res.json({
       message: 'File uploaded successfully',
@@ -69,5 +122,55 @@ export const uploadAudio = async (req, res) => {
   } catch (error) {
     console.error('Error:', error);
     res.status(500).send('Error processing file');
+  }
+};
+
+export const streamAudio = async (req, res) => {
+  try {
+    const audioId = req.params.id;
+    const audio = await Audio.findById(audioId);
+
+    if (!audio) {
+      return res.status(404).send({message: 'Audio not found'});
+    }
+
+    const s3Params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: audio.s3Key,
+    };
+
+    const headData = await s3.headObject(s3Params).promise();
+    const fileSize = headData.ContentLength;
+    const range = req.headers.range;
+
+    if (range) {
+      const parts = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+      const chunksize = end - start + 1;
+      const fileStream = s3
+        .getObject({...s3Params, Range: `bytes=${start}-${end}`})
+        .createReadStream();
+
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': 'audio/mpeg',
+      });
+
+      fileStream.pipe(res);
+    } else {
+      res.writeHead(200, {
+        'Content-Length': fileSize,
+        'Content-Type': 'audio/mpeg',
+      });
+
+      s3.getObject(s3Params).createReadStream().pipe(res);
+    }
+  } catch (err) {
+    console.error('Error in streaming audio:', err);
+    res.status(500).send({message: 'Error in streaming audio'});
   }
 };

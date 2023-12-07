@@ -16,7 +16,6 @@
     ]
   },
   "scripts": {
-    "music": "node data/extractMusicMetadata.js",
     "dev": "nodemon --exec babel-node index.js",
     "test": "echo \"Error: no test specified\"",
     "prepare": "husky install"
