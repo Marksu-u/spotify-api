@@ -2,12 +2,12 @@ version: 2.1
 jobs:
   build:
     docker:
-      - image: cimg/node:14.17 # Specify the Node.js version
+      - image: cimg/node:18
     steps:
       - checkout
       - run: npm install
       - run: npm test
-      - run: npm build
+      - run: npm run build
 workflows:
   version: 2
   build_and_test:
