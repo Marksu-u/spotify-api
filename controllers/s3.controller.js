@@ -7,7 +7,7 @@ dotenv.config();
 const router = express.Router();
 const s3 = new AWS.S3();
 
-router.get('/list-s3-objects', async (req, res) => {
+export const getAWSaudio = async (req, res) => {
   const bucketName = process.env.AWS_BUCKET_NAME;
   const cloudfrontURL = process.env.AWS_CLOUDFRONT;
 
@@ -27,9 +27,9 @@ router.get('/list-s3-objects', async (req, res) => {
     console.error(err);
     res.status(500).send('Error fetching objects from S3/Cloudfront');
   }
-});
+};
 
-router.get('/get-s3-object/:key', async (req, res) => {
+export const getAudioURL = async (req, res) => {
   const bucketName = process.env.AWS_BUCKET_NAME;
   const objectKey = decodeURIComponent(req.params.key);
 
@@ -44,7 +44,7 @@ router.get('/get-s3-object/:key', async (req, res) => {
       const url = s3.getSignedUrl('getObject', {
         Bucket: bucketName,
         Key: objectKey,
-        Expires: 60, // URL expires in 60 seconds
+        Expires: 60,
       });
 
       res.json({url});
@@ -57,8 +57,6 @@ router.get('/get-s3-object/:key', async (req, res) => {
       res.status(500).send('Error fetching object from S3');
     }
   }
-});
+};
 
 // https://d1sivx0xa3w3jl.cloudfront.net
-
-export default router;

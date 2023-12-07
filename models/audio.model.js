@@ -22,6 +22,7 @@ const audioSchema = new Schema({
       },
     ],
   },
+  s3Key: {type: String},
 });
 
 export default model('Audio', audioSchema);
