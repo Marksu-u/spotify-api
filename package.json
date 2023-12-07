@@ -16,6 +16,7 @@
     ]
   },
   "scripts": {
+    "build": "babel src -d dist",
     "dev": "nodemon --exec babel-node index.js",
     "test": "echo \"Error: no test specified\"",
     "prepare": "husky install"
