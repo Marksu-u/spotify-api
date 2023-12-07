@@ -21,6 +21,44 @@ export const getAudios = async (req, res) => {
   }
 };
 
+export const getSingleAudio = async (req, res) => {
+  try {
+    const audioId = req.params.id;
+    const audio = await Audio.findById(audioId);
+    res.json(audio);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
+export const editSingleAudio = async (req, res) => {
+  try {
+    const audioId = req.params.id;
+    const updateData = req.body;
+    const audio = await Audio.findById(audioId);
+
+    if (!audio) {
+      return res.status(404).send({message: 'Audio not found'});
+    }
+
+    if (updateData.filename) audio.filename = updateData.filename;
+    if (updateData.s3Key) audio.s3Key = updateData.s3Key;
+
+    const metadataFields = ['album', 'artist', 'date', 'genre', 'picture'];
+    metadataFields.forEach(field => {
+      if (updateData[field]) {
+        audio.metadata[field] = updateData[field];
+      }
+    });
+
+    await audio.save();
+
+    res.json({message: 'Audio updated successfully', audio});
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
 export const deleteAudio = async (req, res) => {
   try {
     const audioId = req.params.id;
@@ -64,7 +102,7 @@ export const uploadAudio = async (req, res) => {
     const artistName = common.artist || 'Various Artists';
     const albumTitle = common.album || 'Unknown Album';
     const audioGenre = common.genre || 'Unknown Genre';
-    const audioDate = common.date || '2023';
+    const audioDate = common.date || '1900';
 
     const artist = await Artist.findOneAndUpdate(
       {name: artistName},

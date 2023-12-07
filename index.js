@@ -11,8 +11,6 @@ import artistRoutes from './router/artist.routes.js';
 import albumRoutes from './router/album.routes.js';
 
 dotenv.config();
-
-// MongoDB setup
 connectToDatabase();
 
 // Redis

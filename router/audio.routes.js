@@ -4,13 +4,15 @@ import {
   getAudios,
   deleteAudio,
   streamAudio,
+  getSingleAudio,
 } from '../controllers/audio.controller.js';
 import upload from '../middlewares/uploadAudio.middleware.js';
 
 const router = express.Router();
 
 router.post('/upload', upload.single('audioFile'), uploadAudio);
-router.get('/audios', getAudios);
+router.get('/audio', getAudios);
+router.get('/track/:id', getSingleAudio);
 router.delete('/audio/:id', deleteAudio);
 router.get('/stream/:id', streamAudio);
 
