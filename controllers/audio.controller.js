@@ -7,6 +7,15 @@ import Artist from '../models/artist.model.js';
 
 const s3 = new AWS.S3();
 
+export const getAudios = async (req, res) => {
+  try {
+    const audios = await Audio.find();
+    res.json(audios);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
 export const uploadAudio = async (req, res) => {
   try {
     const file = req.file;
