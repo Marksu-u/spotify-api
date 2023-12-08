@@ -87,6 +87,14 @@ export const uploadAudio = async (req, res) => {
     const file = req.file;
     const {common} = await mm.parseFile(file.path).then(metadata => metadata);
 
+    const existingAudio = await Audio.findOne({filename: file.originalname});
+
+    if (existingAudio) {
+      fs.unlinkSync(file.path);
+      res.status(400).json({message: 'Audio already exists in the database'});
+      return;
+    }
+
     const outputFilePath = `${file.path}.ogg`;
     await new Promise((resolve, reject) => {
       Ffmpeg(file.path)
@@ -210,5 +218,20 @@ export const streamAudio = async (req, res) => {
   } catch (err) {
     console.error('Error in streaming audio:', err);
     res.status(500).send({message: 'Error in streaming audio'});
+  }
+};
+
+export const getStreamingCount = async (req, res) => {
+  try {
+    const audioId = req.params.id;
+    const audio = await Audio.findById(audioId);
+
+    if (!audio) {
+      return res.status(404).send({message: 'Audio not found'});
+    }
+    res.json(audio.streamed);
+  } catch (err) {
+    console.error('Error while getting streamed amount:', err);
+    res.status(500).send({message: 'Error while getting streamed amount'});
   }
 };
