@@ -31,7 +31,7 @@ export const getSingleAudio = async (req, res) => {
   }
 };
 
-export const editSingleAudio = async (req, res) => {
+export const editAudio = async (req, res) => {
   try {
     const audioId = req.params.id;
     const updateData = req.body;
