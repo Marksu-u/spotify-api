@@ -23,7 +23,7 @@ export const loginAdmin = async (req, res) => {
 export const getSingleAdmin = async (req, res) => {
   try {
     const id = req.params.id;
-    const admin = await Admin.findOne(id);
+    const admin = await Admin.findById(id);
 
     if (!admin) {
       return res.status(404).json({message: 'Admin not found'});

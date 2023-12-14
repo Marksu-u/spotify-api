@@ -19,6 +19,6 @@ router.put('/:id', editAudio);
 router.post('/upload', upload.single('audioFile'), uploadAudio);
 router.delete('/:id', deleteAudio);
 router.get('/stream/:id', streamAudio);
-router.get('/stream/:id', getStreamingCount);
+router.get('/streamed/:id', getStreamingCount);
 
 export default router;

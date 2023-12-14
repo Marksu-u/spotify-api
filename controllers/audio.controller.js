@@ -180,6 +180,9 @@ export const streamAudio = async (req, res) => {
       return res.status(404).send({message: 'Audio not found'});
     }
 
+    audio.streamed += 1;
+    await audio.save();
+
     const s3Params = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: audio.s3Key,

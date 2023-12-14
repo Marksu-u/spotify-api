@@ -1,8 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 const verifyToken = (req, res, next) => {
-  // const token = req.headers['authorization'];
-  const token = req.headers['authorization']?.split(' ')[1]; // Token Bearer
+  const token = req.headers['authorization']?.split(' ')[1];
 
   if (!token) {
     return res
@@ -11,12 +10,11 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, 'secretKey');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
   } catch (err) {
     return res.status(401).json({error: `Invalid Token: ${err.message}`});
   }
-
   return next();
 };
 
