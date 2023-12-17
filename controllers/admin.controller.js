@@ -20,6 +20,20 @@ export const loginAdmin = async (req, res) => {
   }
 };
 
+export const getAdmins = async (req, res) => {
+  try {
+    const admin = await Admin.find();
+
+    if (!admin) {
+      return res.status(404).json({message: 'Admins not found'});
+    }
+
+    res.json(admin);
+  } catch (error) {
+    res.status(500).json({message: 'Error retrieving admins'});
+  }
+};
+
 export const getSingleAdmin = async (req, res) => {
   try {
     const id = req.params.id;

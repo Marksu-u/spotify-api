@@ -14,7 +14,9 @@ Ffmpeg.setFfmpegPath('/opt/homebrew/Cellar/ffmpeg/6.0_1/bin/ffmpeg');
 
 export const getAudios = async (req, res) => {
   try {
-    const audios = await Audio.find();
+    const audios = await Audio.find()
+      .populate('metadata.artist', 'name')
+      .populate('metadata.album', 'title');
     res.json(audios);
   } catch (err) {
     res.status(500).send({message: err.message});
@@ -24,7 +26,9 @@ export const getAudios = async (req, res) => {
 export const getSingleAudio = async (req, res) => {
   try {
     const audioId = req.params.id;
-    const audio = await Audio.findById(audioId);
+    const audio = await Audio.findById(audioId)
+      .populate('metadata.artist', 'name')
+      .populate('metadata.album', 'title');
     res.json(audio);
   } catch (err) {
     res.status(500).send({message: err.message});
