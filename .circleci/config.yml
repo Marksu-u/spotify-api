@@ -1,12 +1,17 @@
 version: 2.1
+orbs:
+  node: circleci/node@4.7.0
+  heroku: circleci/heroku@1.2.6
 jobs:
-  build:
+  build_and_test:
     docker:
-      - image: cimg/node:18
+      - image: cimg/node:17.2.0
     steps:
       - checkout
+      - node/install-packages:
+        pkg-manager: npm
       - run: npm install
-      - run: npm test
+      - run: npm run test
       - run: npm run build
 workflows:
   version: 2
