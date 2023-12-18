@@ -14,8 +14,50 @@ Ffmpeg.setFfmpegPath('/opt/homebrew/Cellar/ffmpeg/6.0_1/bin/ffmpeg');
 
 export const getAudios = async (req, res) => {
   try {
-    const audios = await Audio.find();
+    const audios = await Audio.find()
+      .populate('metadata.artist', 'name')
+      .populate('metadata.album', 'title');
     res.json(audios);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
+export const getSingleAudio = async (req, res) => {
+  try {
+    const audioId = req.params.id;
+    const audio = await Audio.findById(audioId)
+      .populate('metadata.artist', 'name')
+      .populate('metadata.album', 'title');
+    res.json(audio);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
+export const editAudio = async (req, res) => {
+  try {
+    const audioId = req.params.id;
+    const updateData = req.body;
+    const audio = await Audio.findById(audioId);
+
+    if (!audio) {
+      return res.status(404).send({message: 'Audio not found'});
+    }
+
+    if (updateData.filename) audio.filename = updateData.filename;
+    if (updateData.s3Key) audio.s3Key = updateData.s3Key;
+
+    const metadataFields = ['album', 'artist', 'date', 'genre', 'picture'];
+    metadataFields.forEach(field => {
+      if (updateData[field]) {
+        audio.metadata[field] = updateData[field];
+      }
+    });
+
+    await audio.save();
+
+    res.json({message: 'Audio updated successfully', audio});
   } catch (err) {
     res.status(500).send({message: err.message});
   }
@@ -49,6 +91,14 @@ export const uploadAudio = async (req, res) => {
     const file = req.file;
     const {common} = await mm.parseFile(file.path).then(metadata => metadata);
 
+    const existingAudio = await Audio.findOne({filename: file.originalname});
+
+    if (existingAudio) {
+      fs.unlinkSync(file.path);
+      res.status(400).json({message: 'Audio already exists in the database'});
+      return;
+    }
+
     const outputFilePath = `${file.path}.ogg`;
     await new Promise((resolve, reject) => {
       Ffmpeg(file.path)
@@ -64,7 +114,7 @@ export const uploadAudio = async (req, res) => {
     const artistName = common.artist || 'Various Artists';
     const albumTitle = common.album || 'Unknown Album';
     const audioGenre = common.genre || 'Unknown Genre';
-    const audioDate = common.date || '2023';
+    const audioDate = common.date || '1900';
 
     const artist = await Artist.findOneAndUpdate(
       {name: artistName},
@@ -134,6 +184,9 @@ export const streamAudio = async (req, res) => {
       return res.status(404).send({message: 'Audio not found'});
     }
 
+    audio.streamed += 1;
+    await audio.save();
+
     const s3Params = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: audio.s3Key,
@@ -172,5 +225,20 @@ export const streamAudio = async (req, res) => {
   } catch (err) {
     console.error('Error in streaming audio:', err);
     res.status(500).send({message: 'Error in streaming audio'});
+  }
+};
+
+export const getStreamingCount = async (req, res) => {
+  try {
+    const audioId = req.params.id;
+    const audio = await Audio.findById(audioId);
+
+    if (!audio) {
+      return res.status(404).send({message: 'Audio not found'});
+    }
+    res.json(audio.streamed);
+  } catch (err) {
+    console.error('Error while getting streamed amount:', err);
+    res.status(500).send({message: 'Error while getting streamed amount'});
   }
 };

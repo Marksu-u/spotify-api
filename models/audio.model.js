@@ -23,6 +23,7 @@ const audioSchema = new Schema({
     ],
   },
   s3Key: {type: String},
+  streamed: {type: Number, default: 0},
 });
 
 export default model('Audio', audioSchema);
