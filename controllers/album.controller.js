@@ -5,7 +5,20 @@ import Artist from '../models/artist.model.js';
 export const getAlbums = async (req, res) => {
   try {
     const albums = await Album.find();
-    res.json(albums);
+    const albumsWithImage = await Promise.all(
+      albums.map(async album => {
+        const audio = await Audio.findOne({'metadata.album': album._id})
+          .select('metadata.picture')
+          .sort({createdAt: 1});
+
+        return {
+          ...album.toObject(),
+          picture: audio ? audio.metadata.picture : null,
+        };
+      }),
+    );
+
+    res.json(albumsWithImage);
   } catch (err) {
     res.status(500).send({message: err.message});
   }
