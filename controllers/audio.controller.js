@@ -2,10 +2,15 @@ import AWS from 'aws-sdk';
 import dotenv from 'dotenv';
 import mm from 'music-metadata';
 import fs from 'fs';
+import path from 'path';
+import {fileURLToPath} from 'url';
 import Ffmpeg from 'fluent-ffmpeg';
 import Audio from '../models/audio.model.js';
 import Album from '../models/album.model.js';
 import Artist from '../models/artist.model.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 const s3 = new AWS.S3();
@@ -127,6 +132,15 @@ export const uploadAudio = async (req, res) => {
       {
         title: albumTitle,
         artist: artist._id,
+        picture: common.picture?.length
+          ? {
+              data: common.picture[0].data,
+              format: common.picture[0].format,
+            }
+          : {
+              data: fs.readFileSync(path.join(__dirname, '../assets/404.jpeg')),
+              format: 'image/jpeg',
+            },
         releaseDate: new Date(audioDate),
         genre: audioGenre,
       },
@@ -145,7 +159,10 @@ export const uploadAudio = async (req, res) => {
               data: common.picture[0].data,
               format: common.picture[0].format,
             }
-          : undefined,
+          : {
+              data: fs.readFileSync(path.join(__dirname, '../assets/404.jpeg')),
+              format: 'image/jpeg',
+            },
       },
     });
 

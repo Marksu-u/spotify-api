@@ -1,24 +1,17 @@
+import fs from 'fs';
+import path from 'path';
+import {fileURLToPath} from 'url';
 import Album from '../models/album.model.js';
 import Audio from '../models/audio.model.js';
 import Artist from '../models/artist.model.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export const getAlbums = async (req, res) => {
   try {
     const albums = await Album.find();
-    const albumsWithImage = await Promise.all(
-      albums.map(async album => {
-        const audio = await Audio.findOne({'metadata.album': album._id})
-          .select('metadata.picture')
-          .sort({createdAt: 1});
-
-        return {
-          ...album.toObject(),
-          picture: audio ? audio.metadata.picture : null,
-        };
-      }),
-    );
-
-    res.json(albumsWithImage);
+    res.json(albums);
   } catch (err) {
     res.status(500).send({message: err.message});
   }
@@ -75,6 +68,15 @@ export const createAlbum = async (req, res) => {
     const existingAlbum = await Album.findOne({
       title: albumData.title,
       artist: albumData.artist,
+      picture: albumData.picture?.length
+        ? {
+            data: albumData.picture[0].data,
+            format: albumData.picture[0].format,
+          }
+        : {
+            data: fs.readFileSync(path.join(__dirname, '../assets/404.jpeg')),
+            format: 'image/jpeg',
+          },
     });
 
     if (existingAlbum) {
@@ -111,7 +113,7 @@ export const deleteAlbum = async (req, res) => {
       });
     }
 
-    await album.remove();
+    await Album.findByIdAndDelete();
     res.send({message: 'Album deleted successfully'});
   } catch (err) {
     res.status(500).send({message: err.message});

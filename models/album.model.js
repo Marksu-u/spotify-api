@@ -9,6 +9,12 @@ const albumSchema = new Schema({
     ref: 'Artist',
     required: true,
   },
+  picture: [
+    {
+      data: Buffer,
+      format: String,
+    },
+  ],
   releaseDate: Date,
   genre: [String],
 });
