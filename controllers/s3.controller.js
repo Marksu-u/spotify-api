@@ -26,5 +26,3 @@ export const getAWSaudio = async (req, res) => {
     res.status(500).send('Error fetching objects from S3/Cloudfront');
   }
 };
-
-// https://d1sivx0xa3w3jl.cloudfront.net
