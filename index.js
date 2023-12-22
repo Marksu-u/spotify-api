@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
-import redis from 'redis';
 import 'express-async-errors';
 import connectToDatabase from './middlewares/mongodb.js';
 
@@ -13,11 +12,6 @@ import adminRoutes from './router/admin.routes.js';
 
 dotenv.config();
 connectToDatabase();
-
-// Redis
-const redisClient = redis.createClient();
-
-redisClient.on('error', err => console.log('Redis error:', err));
 
 const app = express();
 app.use(cors());
