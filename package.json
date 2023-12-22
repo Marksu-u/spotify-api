@@ -17,6 +17,7 @@
   },
   "scripts": {
     "dev": "nodemon --exec babel-node index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\"",
     "prepare": "husky install"
   },
