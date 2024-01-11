@@ -28,6 +28,40 @@ export const getAudios = async (req, res) => {
   }
 };
 
+export const getAudiosByArtist = async (req, res) => {
+  try {
+    const artistId = req.params.id;
+    const audios = await Audio.find({'metadata.artist': artistId})
+      .populate('metadata.artist', 'name')
+      .populate('metadata.album', 'title');
+
+    if (audios.length === 0) {
+      return res.status(404).send({message: 'No audios found for this artist'});
+    }
+
+    res.json(audios);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
+export const getAudiosByAlbum = async (req, res) => {
+  try {
+    const albumId = req.params.id;
+    const audios = await Audio.find({'metadata.album': albumId})
+      .populate('metadata.artist', 'name')
+      .populate('metadata.album', 'title');
+
+    if (audios.length === 0) {
+      return res.status(404).send({message: 'No audios found for this album'});
+    }
+
+    res.json(audios);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
 export const getSingleAudio = async (req, res) => {
   try {
     const audioId = req.params.id;
@@ -81,7 +115,12 @@ export const deleteAudio = async (req, res) => {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: audio.s3Key,
     };
-    await s3.deleteObject(s3Params).promise();
+
+    try {
+      await s3.deleteObject(s3Params).promise();
+    } catch (s3Error) {
+      console.error('Error deleting object in S3:', s3Error);
+    }
 
     await Audio.findByIdAndDelete(audioId);
 
@@ -104,10 +143,11 @@ export const uploadAudio = async (req, res) => {
       return;
     }
 
-    const outputFilePath = `${file.path}.ogg`;
+    const outputFilePath = `${file.path}.m4a`;
     await new Promise((resolve, reject) => {
       Ffmpeg(file.path)
-        .toFormat('ogg')
+        .audioCodec('aac')
+        .toFormat('ipod')
         .on('end', resolve)
         .on('error', err => {
           console.error('Error during conversion:', err);
@@ -167,13 +207,13 @@ export const uploadAudio = async (req, res) => {
     });
 
     await newAudio.save();
-    const s3Key = `audio-files/${newAudio._id}.ogg`;
+    const s3Key = `audio-files/${newAudio._id}.m4a`;
     newAudio.s3Key = s3Key;
     await newAudio.save();
 
     const s3Params = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `audio-files/${newAudio._id}.ogg`,
+      Key: `audio-files/${newAudio._id}.m4a`,
       Body: fs.createReadStream(outputFilePath),
     };
 

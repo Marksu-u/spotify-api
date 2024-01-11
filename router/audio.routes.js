@@ -1,6 +1,8 @@
 import express from 'express';
 import {
   getAudios,
+  getAudiosByArtist,
+  getAudiosByAlbum,
   getSingleAudio,
   editAudio,
   uploadAudio,
@@ -13,6 +15,8 @@ import upload from '../middlewares/uploadAudio.middleware.js';
 const router = express.Router();
 
 router.get('/', getAudios);
+router.get('/by/:id', getAudiosByArtist);
+router.get('/from/:id', getAudiosByAlbum);
 router.get('/:id', getSingleAudio);
 router.put('/:id', editAudio);
 router.put('/:id', upload.single('audioFile'), editAudio);
