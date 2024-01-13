@@ -205,15 +205,15 @@ export const uploadAudio = async (req, res) => {
             },
       },
     });
-
     await newAudio.save();
+
     const s3Key = `audio-files/${newAudio._id}.m4a`;
     newAudio.s3Key = s3Key;
     await newAudio.save();
 
     const s3Params = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `audio-files/${newAudio._id}.m4a`,
+      Key: s3Key,
       Body: fs.createReadStream(outputFilePath),
     };
 
