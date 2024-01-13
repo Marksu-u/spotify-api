@@ -9,8 +9,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const getAlbums = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 50;
+  const skipIndex = (page - 1) * limit;
+
   try {
-    const albums = await Album.find();
+    const albums = await Album.find()
+      .populate('artist', 'name')
+      .sort({_id: 1})
+      .limit(limit)
+      .skip(skipIndex);
     res.json(albums);
   } catch (err) {
     res.status(500).send({message: err.message});

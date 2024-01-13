@@ -12,7 +12,7 @@ export const loginAdmin = async (req, res) => {
     }
 
     const token = jwt.sign({id: admin._id}, process.env.JWT_SECRET, {
-      expiresIn: '48h',
+      expiresIn: '30d',
     });
     res.json({token});
   } catch (error) {
