@@ -14,7 +14,6 @@ dotenv.config();
 connectToDatabase();
 
 const app = express();
-
 app.use(
   cors({
     origin: 'https://marksu.fr',
