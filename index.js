@@ -15,22 +15,7 @@ connectToDatabase();
 
 const app = express();
 
-const allowedOrigins = [
-  'https://marksu-u.github.io/spotify-back/',
-  'https://marksu-u.github.io/spotify-front/',
-];
-
-const corsOptions = (req, callback) => {
-  let corsOptions;
-  if (allowedOrigins.includes(req.header('Origin'))) {
-    corsOptions = {origin: true};
-  } else {
-    corsOptions = {origin: false};
-  }
-  callback(null, corsOptions);
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 
 app.use('/api/aws', s3Routes);
