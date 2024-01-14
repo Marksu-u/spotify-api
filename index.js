@@ -15,9 +15,16 @@ connectToDatabase();
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: 'https://marksu.fr',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
+app.options('*', cors());
 app.use('/api/aws', s3Routes);
 app.use('/api/audio', audioRoutes);
 app.use('/api/artist', artistRoutes);
