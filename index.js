@@ -10,13 +10,18 @@ import artistRoutes from './router/artist.routes.js';
 import albumRoutes from './router/album.routes.js';
 import adminRoutes from './router/admin.routes.js';
 
+const allowedOrigins = [
+  'http://backoffice.marksu.fr',
+  'http://frontoffice.marksu.fr',
+];
+
 dotenv.config();
 connectToDatabase();
 
 const app = express();
 app.use(
   cors({
-    origin: 'https://marksu.fr',
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   }),
