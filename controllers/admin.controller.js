@@ -5,10 +5,14 @@ import bcrypt from 'bcryptjs';
 export const loginAdmin = async (req, res) => {
   try {
     const {username, password} = req.body;
-    const admin = await Admin.findOne({username});
+    const admin = await Admin.findOne({
+      $or: [{username: username}, {email: username}],
+    });
 
     if (!admin || !bcrypt.compareSync(password, admin.password)) {
-      return res.status(401).json({message: 'Invalid email or password'});
+      return res
+        .status(401)
+        .json({message: 'Invalid username/email or password'});
     }
 
     const token = jwt.sign({id: admin._id}, process.env.JWT_SECRET, {
