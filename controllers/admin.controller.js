@@ -25,13 +25,14 @@ export const loginAdmin = async (req, res) => {
 };
 
 export const getAdmins = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 16;
+
   try {
-    const admin = await Admin.find();
-
-    if (!admin) {
-      return res.status(404).json({message: 'Admins not found'});
-    }
-
+    const admin = await Admin.find()
+      .sort({_id: 1})
+      .limit(limit)
+      .skip((page - 1) * limit);
     res.json(admin);
   } catch (error) {
     res.status(500).json({message: 'Error retrieving admins'});

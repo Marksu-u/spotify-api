@@ -4,14 +4,13 @@ import Album from '../models/album.model.js';
 
 export const getArtists = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
-  const skipIndex = (page - 1) * limit;
+  const limit = parseInt(req.query.limit) || 16;
 
   try {
     const artists = await Artist.find()
       .sort({_id: 1})
       .limit(limit)
-      .skip(skipIndex);
+      .skip((page - 1) * limit);
     res.json(artists);
   } catch (err) {
     res.status(500).send({message: err.message});
@@ -56,7 +55,10 @@ export const editArtist = async (req, res) => {
 
 export const createArtist = async (req, res) => {
   try {
-    const artistData = req.body;
+    const artistData = {
+      name: req.body.title,
+    };
+    console.log(artistData);
 
     const existingArtist = await Artist.findOne({name: artistData.name});
     if (existingArtist) {
