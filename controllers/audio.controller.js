@@ -18,16 +18,10 @@ const s3 = new AWS.S3();
 Ffmpeg.setFfmpegPath('/opt/homebrew/Cellar/ffmpeg/6.0_1/bin/ffmpeg');
 
 export const getAudios = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 16;
-
   try {
     const audios = await Audio.find()
       .populate('metadata.artist', 'name')
-      .populate('metadata.album', 'title')
-      .sort({_id: 1})
-      .limit(limit)
-      .skip((page - 1) * limit);
+      .populate('metadata.album', 'title');
     res.json(audios);
   } catch (err) {
     res.status(500).send({message: err.message});

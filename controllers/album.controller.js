@@ -3,21 +3,25 @@ import path from 'path';
 import {fileURLToPath} from 'url';
 import Album from '../models/album.model.js';
 import Audio from '../models/audio.model.js';
-import Artist from '../models/artist.model.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const getAlbums = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 50;
-
   try {
-    const albums = await Album.find()
+    const albums = await Album.find().populate('artist', 'name');
+    res.json(albums);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
+export const getAlbumWithAudios = async (req, res) => {
+  const albumId = req.params.id;
+  try {
+    const albums = await Album.findById(albumId)
       .populate('artist', 'name')
-      .sort({_id: 1})
-      .limit(limit)
-      .skip((page - 1) * limit);
+      .populate('audio', 'title');
     res.json(albums);
   } catch (err) {
     res.status(500).send({message: err.message});
@@ -37,26 +41,28 @@ export const getSingleAlbum = async (req, res) => {
 export const editAlbum = async (req, res) => {
   try {
     const albumId = req.params.id;
-    const updateData = req.body;
+    const {title, artist, releaseDate, genre} = req.body;
 
     const album = await Album.findById(albumId);
     if (!album) {
       return res.status(404).send({message: 'Album not found'});
     }
 
-    if (updateData.artist) {
-      const artistExists = await Artist.exists({_id: updateData.artist});
-      if (!artistExists) {
-        return res.status(404).send({message: 'Artist not found'});
-      }
+    album.title = title;
+    album.artist = artist;
+    album.releaseDate = releaseDate;
+    album.genre = JSON.parse(genre);
+
+    if (req.file) {
+      const newPictureData = {
+        data: fs.readFileSync(req.file.path),
+        format: req.file.mimetype,
+      };
+      album.picture = [newPictureData];
     }
-    Object.keys(updateData).forEach(key => {
-      album[key] = updateData[key];
-    });
 
     await album.save();
-
-    res.send({message: 'Album updated successfully', album});
+    res.status(200).send({message: 'Album updated successfully', album});
   } catch (err) {
     res.status(500).send({message: err.message});
   }
@@ -64,37 +70,31 @@ export const editAlbum = async (req, res) => {
 
 export const createAlbum = async (req, res) => {
   try {
-    const albumData = req.body;
-    if (albumData.artist) {
-      const artistExists = await Artist.exists({_id: albumData.artist});
-      if (!artistExists) {
-        return res.status(404).send({message: 'Artist not found'});
-      }
-    }
+    const {title, genre, artist, releaseDate} = req.body;
+    const genreArray = JSON.parse(genre);
+    console.log(artist);
 
-    const existingAlbum = await Album.findOne({
-      title: albumData.title,
-      artist: albumData.artist,
-      picture: albumData.picture?.length
-        ? {
-            data: albumData.picture[0].data,
-            format: albumData.picture[0].format,
-          }
-        : {
-            data: fs.readFileSync(path.join(__dirname, '../assets/404.jpeg')),
-            format: 'image/jpeg',
-          },
+    const pictureData = req.file
+      ? {
+          data: fs.readFileSync(req.file.path),
+          format: req.file.mimetype,
+        }
+      : {
+          data: fs.readFileSync(path.join(__dirname, '../assets/404.jpeg')),
+          format: 'image/jpeg',
+        };
+
+    const newAlbum = new Album({
+      title,
+      genre: genreArray,
+      artist,
+      picture: [pictureData],
+      releaseDate,
     });
 
-    if (existingAlbum) {
-      return res
-        .status(409)
-        .send({message: 'An album with this title and artist already exists'});
-    }
+    console.log(newAlbum);
 
-    const newAlbum = new Album(albumData);
     await newAlbum.save();
-
     res.status(201).send({message: 'Album created successfully', newAlbum});
   } catch (err) {
     res.status(500).send({message: err.message});
@@ -120,7 +120,7 @@ export const deleteAlbum = async (req, res) => {
       });
     }
 
-    await Album.findByIdAndDelete();
+    await Album.findByIdAndDelete(albumId);
     res.send({message: 'Album deleted successfully'});
   } catch (err) {
     res.status(500).send({message: err.message});

@@ -3,14 +3,26 @@ import Audio from '../models/audio.model.js';
 import Album from '../models/album.model.js';
 
 export const getArtists = async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 16;
-
   try {
-    const artists = await Artist.find()
-      .sort({_id: 1})
-      .limit(limit)
-      .skip((page - 1) * limit);
+    const artists = await Artist.find();
+    res.json(artists);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
+export const getLastArtist = async (req, res) => {
+  try {
+    const lastArtist = await Artist.findOne().sort({_id: -1});
+    res.json(lastArtist);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
+export const getAllArtists = async (req, res) => {
+  try {
+    const artists = await Artist.find();
     res.json(artists);
   } catch (err) {
     res.status(500).send({message: err.message});
@@ -35,7 +47,10 @@ export const getSingleArtist = async (req, res) => {
 export const editArtist = async (req, res) => {
   try {
     const artistId = req.params.id;
-    const updateData = req.body;
+    const updateData = {
+      id: req.params.id,
+      name: req.body.title,
+    };
 
     const artist = await Artist.findById(artistId);
     if (!artist) {
@@ -58,7 +73,6 @@ export const createArtist = async (req, res) => {
     const artistData = {
       name: req.body.title,
     };
-    console.log(artistData);
 
     const existingArtist = await Artist.findOne({name: artistData.name});
     if (existingArtist) {
@@ -97,7 +111,7 @@ export const deleteArtist = async (req, res) => {
       });
     }
 
-    await artist.remove();
+    await Artist.findByIdAndDelete(artistId);
     res.send({message: 'Artist deleted successfully'});
   } catch (err) {
     res.status(500).send({message: err.message});
