@@ -19,12 +19,43 @@ Ffmpeg.setFfmpegPath('/opt/homebrew/Cellar/ffmpeg/6.0_1/bin/ffmpeg');
 
 export const getAudios = async (req, res) => {
   try {
-    const audios = await Audio.find()
-      .populate('metadata.artist', 'name')
-      .populate('metadata.album', 'title');
-    res.json(audios);
+    console.log('Fetching albums...');
+    const albums = await Album.find().select(
+      'title picture releaseDate artist',
+    );
+    const albumsWithAudios = await Promise.all(
+      albums.map(async album => {
+        const artist = await Artist.findById(album.artist).select('name');
+        const audios = await Audio.find({'metadata.album': album._id}).select(
+          'filename metadata.genre',
+        );
+
+        return {
+          title: album.title,
+          picture: album.picture,
+          releaseDate: album.releaseDate,
+          name: artist.name,
+          audios: audios.map(audio => ({
+            _id: audio._id,
+            title: audio.filename,
+            genre: audio.metadata.genre,
+          })),
+        };
+      }),
+    );
+    res.json(albumsWithAudios);
   } catch (err) {
+    console.error('Error occurred: ', err.message);
     res.status(500).send({message: err.message});
+  }
+};
+
+export const getLastAudio = async (req, res) => {
+  try {
+    const lastAudio = await Audio.findOne().sort({_id: -1});
+    res.json(lastAudio);
+  } catch (error) {
+    res.status(500).send({message: error.message});
   }
 };
 
