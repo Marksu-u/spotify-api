@@ -49,7 +49,7 @@ export const editArtist = async (req, res) => {
     const artistId = req.params.id;
     const updateData = {
       id: req.params.id,
-      name: req.body.title,
+      name: req.body.name,
     };
 
     const artist = await Artist.findById(artistId);
@@ -71,7 +71,7 @@ export const editArtist = async (req, res) => {
 export const createArtist = async (req, res) => {
   try {
     const artistData = {
-      name: req.body.title,
+      name: req.body.name,
     };
 
     const existingArtist = await Artist.findOne({name: artistData.name});

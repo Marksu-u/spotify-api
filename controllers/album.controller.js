@@ -3,15 +3,38 @@ import path from 'path';
 import {fileURLToPath} from 'url';
 import Album from '../models/album.model.js';
 import Audio from '../models/audio.model.js';
+import Artist from '../models/artist.model.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const getAlbums = async (req, res) => {
   try {
-    const albums = await Album.find().populate('artist', 'name');
-    res.json(albums);
+    const albums = await Album.find().select(
+      '_id title picture releaseDate genre artist',
+    );
+
+    const albumsWithArtist = await Promise.all(
+      albums.map(async album => {
+        const artist = await Artist.findById(album.artist).select('_id name');
+
+        return {
+          _id: album._id,
+          title: album.title,
+          picture: album.picture,
+          releaseDate: album.releaseDate,
+          genre: album.genre,
+          artist: {
+            _id: artist._id,
+            name: artist.name,
+          },
+        };
+      }),
+    );
+
+    res.json(albumsWithArtist);
   } catch (err) {
+    console.error('Error occurred: ', err.message);
     res.status(500).send({message: err.message});
   }
 };

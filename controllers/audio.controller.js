@@ -19,21 +19,22 @@ Ffmpeg.setFfmpegPath('/opt/homebrew/Cellar/ffmpeg/6.0_1/bin/ffmpeg');
 
 export const getAudios = async (req, res) => {
   try {
-    console.log('Fetching albums...');
     const albums = await Album.find().select(
-      'title picture releaseDate artist',
+      '_id title picture releaseDate artist',
     );
     const albumsWithAudios = await Promise.all(
       albums.map(async album => {
-        const artist = await Artist.findById(album.artist).select('name');
+        const artist = await Artist.findById(album.artist);
         const audios = await Audio.find({'metadata.album': album._id}).select(
           'filename metadata.genre',
         );
 
         return {
+          _id: album._id,
           title: album.title,
           picture: album.picture,
           releaseDate: album.releaseDate,
+          artistId: artist._id,
           name: artist.name,
           audios: audios.map(audio => ({
             _id: audio._id,
