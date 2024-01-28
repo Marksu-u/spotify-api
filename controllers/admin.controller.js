@@ -39,6 +39,15 @@ export const getAdmins = async (req, res) => {
   }
 };
 
+export const getLastAdmin = async (req, res) => {
+  try {
+    const lastAdmin = await Admin.findOne().sort({_id: -1});
+    res.json(lastAdmin);
+  } catch (err) {
+    res.status(500).send({message: err.message});
+  }
+};
+
 export const getSingleAdmin = async (req, res) => {
   try {
     const id = req.params.id;

@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getAdmins,
+  getLastAdmin,
   getSingleAdmin,
   addAdmin,
   updateAdmin,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post('/log', loginAdmin);
 router.get('/', verifyToken, getAdmins);
+router.get('/last', verifyToken, getLastAdmin);
 router.get('/:id', verifyToken, getSingleAdmin);
 router.post('/', verifyToken, addAdmin);
 router.put('/:id', verifyToken, updateAdmin);

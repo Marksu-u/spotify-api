@@ -54,8 +54,39 @@ export const getAudios = async (req, res) => {
 export const getLastAudio = async (req, res) => {
   try {
     const lastAudio = await Audio.findOne().sort({_id: -1});
-    res.json(lastAudio);
+
+    if (!lastAudio) {
+      return res.status(404).send({message: 'No audio found'});
+    }
+
+    const album = await Album.findById(lastAudio.metadata.album).select(
+      '_id title picture releaseDate artist',
+    );
+
+    if (!album) {
+      return res.status(404).send({message: 'Album not found for the audio'});
+    }
+
+    const artist = await Artist.findById(album.artist);
+    const audioDetail = {
+      _id: album._id,
+      title: album.title,
+      picture: album.picture,
+      releaseDate: album.releaseDate,
+      artistId: artist._id,
+      name: artist.name,
+      audios: [
+        {
+          _id: lastAudio._id,
+          title: lastAudio.filename,
+          genre: lastAudio.metadata.genre,
+        },
+      ],
+    };
+
+    res.json(audioDetail);
   } catch (error) {
+    console.error('Error occurred: ', error.message);
     res.status(500).send({message: error.message});
   }
 };

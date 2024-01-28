@@ -39,6 +39,36 @@ export const getAlbums = async (req, res) => {
   }
 };
 
+export const getLastAlbum = async (req, res) => {
+  try {
+    const lastAlbum = await Album.findOne()
+      .sort({_id: -1})
+      .select('_id title picture releaseDate genre artist');
+
+    if (!lastAlbum) {
+      return res.status(404).send({message: 'No albums found'});
+    }
+
+    const artist = await Artist.findById(lastAlbum.artist).select('_id name');
+    const albumDetail = {
+      _id: lastAlbum._id,
+      title: lastAlbum.title,
+      picture: lastAlbum.picture,
+      releaseDate: lastAlbum.releaseDate,
+      genre: lastAlbum.genre,
+      artist: {
+        _id: artist._id,
+        name: artist.name,
+      },
+    };
+
+    res.json(albumDetail);
+  } catch (err) {
+    console.error('Error occurred: ', err.message);
+    res.status(500).send({message: err.message});
+  }
+};
+
 export const getAlbumWithAudios = async (req, res) => {
   const albumId = req.params.id;
   try {

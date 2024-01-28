@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   getAlbums,
+  getLastAlbum,
   getAlbumWithAudios,
   getSingleAlbum,
   editAlbum,
@@ -13,6 +14,7 @@ import verifyToken from '../middlewares/auth.middleware.js';
 const router = express.Router();
 
 router.get('/', getAlbums);
+router.get('/last', getLastAlbum);
 router.get('/audio/:id', getAlbumWithAudios);
 router.get('/:id', getSingleAlbum);
 router.post('/', verifyToken, upload.single('albumImage'), createAlbum);
