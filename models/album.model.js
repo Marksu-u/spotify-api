@@ -16,7 +16,7 @@ const albumSchema = new Schema({
     },
   ],
   releaseDate: Date,
-  genre: [String],
+  genre: String,
 });
 
 export default model('Album', albumSchema);

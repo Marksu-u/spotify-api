@@ -22,7 +22,7 @@ router.get('/from/:id', getAudiosByAlbum);
 router.get('/:id', getSingleAudio);
 router.put('/:id', editAudio);
 router.put('/:id', editAudio);
-router.post('/upload', upload.single('audioFile'), uploadAudio);
+router.post('/upload', upload.single('filename'), uploadAudio);
 router.delete('/:id', deleteAudio);
 router.get('/stream/:id', streamAudio);
 router.get('/streamed/:id', getStreamingCount);

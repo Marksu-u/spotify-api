@@ -14,7 +14,7 @@ const audioSchema = new Schema({
       ref: 'Artist',
     },
     date: String,
-    genre: [String],
+    genre: String,
     picture: [
       {
         data: Buffer,

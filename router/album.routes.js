@@ -17,8 +17,8 @@ router.get('/', getAlbums);
 router.get('/last', getLastAlbum);
 router.get('/audio/:id', getAlbumWithAudios);
 router.get('/:id', getSingleAlbum);
-router.post('/', verifyToken, upload.single('albumImage'), createAlbum);
-router.put('/:id', verifyToken, upload.single('albumImage'), editAlbum);
+router.post('/', verifyToken, upload.single('picture'), createAlbum);
+router.put('/:id', verifyToken, upload.single('picture'), editAlbum);
 router.delete('/:id', verifyToken, deleteAlbum);
 
 export default router;

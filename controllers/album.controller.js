@@ -94,7 +94,7 @@ export const getSingleAlbum = async (req, res) => {
 export const editAlbum = async (req, res) => {
   try {
     const albumId = req.params.id;
-    const {title, artist, releaseDate, genre} = req.body;
+    const {title, artistId, releaseDate, genre} = req.body;
 
     const album = await Album.findById(albumId);
     if (!album) {
@@ -102,9 +102,9 @@ export const editAlbum = async (req, res) => {
     }
 
     album.title = title;
-    album.artist = artist;
+    album.artist = artistId;
     album.releaseDate = releaseDate;
-    album.genre = JSON.parse(genre);
+    album.genre = genre;
 
     if (req.file) {
       const newPictureData = {
@@ -113,7 +113,6 @@ export const editAlbum = async (req, res) => {
       };
       album.picture = [newPictureData];
     }
-
     await album.save();
     res.status(200).send({message: 'Album updated successfully', album});
   } catch (err) {
@@ -123,9 +122,7 @@ export const editAlbum = async (req, res) => {
 
 export const createAlbum = async (req, res) => {
   try {
-    const {title, genre, artist, releaseDate} = req.body;
-    const genreArray = JSON.parse(genre);
-    console.log(artist);
+    const {title, genre, artistId, releaseDate} = req.body;
 
     const pictureData = req.file
       ? {
@@ -137,19 +134,22 @@ export const createAlbum = async (req, res) => {
           format: 'image/jpeg',
         };
 
+    console.log(artistId);
+
     const newAlbum = new Album({
       title,
-      genre: genreArray,
-      artist,
+      genre,
+      artist: artistId,
       picture: [pictureData],
       releaseDate,
     });
 
-    console.log(newAlbum);
-
     await newAlbum.save();
-    res.status(201).send({message: 'Album created successfully', newAlbum});
+    res
+      .status(201)
+      .send({message: 'Album created successfully', album: newAlbum});
   } catch (err) {
+    console.error(err);
     res.status(500).send({message: err.message});
   }
 };

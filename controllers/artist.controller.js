@@ -48,8 +48,8 @@ export const editArtist = async (req, res) => {
   try {
     const artistId = req.params.id;
     const updateData = {
-      id: req.params.id,
-      name: req.body.name,
+      _id: req.params.id,
+      name: req.body.title,
     };
 
     const artist = await Artist.findById(artistId);
