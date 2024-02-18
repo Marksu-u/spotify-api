@@ -93,16 +93,40 @@ export const getLastAudio = async (req, res) => {
 export const getAudiosByArtist = async (req, res) => {
   try {
     const artistId = req.params.id;
-    const audios = await Audio.find({'metadata.artist': artistId})
-      .populate('metadata.artist', 'name')
-      .populate('metadata.album', 'title');
+    const artist = await Artist.findById(artistId);
 
-    if (audios.length === 0) {
-      return res.status(404).send({message: 'No audios found for this artist'});
+    if (!artist) {
+      return res.status(404).send({message: 'Artist not found'});
     }
 
-    res.json(audios);
+    const albums = await Album.find({artist: artistId}).select('_id title');
+    const albumAudios = await Promise.all(
+      albums.map(async album => {
+        const audios = await Audio.find({'metadata.album': album._id}).select(
+          'filename metadata.genre',
+        );
+
+        return {
+          albumId: album._id,
+          albumTitle: album.title,
+          audios: audios.map(audio => ({
+            _id: audio._id,
+            title: audio.filename,
+            genre: audio.metadata.genre,
+          })),
+        };
+      }),
+    );
+
+    const response = {
+      artistId: artist._id,
+      name: artist.name,
+      albums: albumAudios,
+    };
+
+    res.json(response);
   } catch (err) {
+    console.error('Error occurred: ', err.message);
     res.status(500).send({message: err.message});
   }
 };
@@ -110,16 +134,36 @@ export const getAudiosByArtist = async (req, res) => {
 export const getAudiosByAlbum = async (req, res) => {
   try {
     const albumId = req.params.id;
-    const audios = await Audio.find({'metadata.album': albumId})
-      .populate('metadata.artist', 'name')
-      .populate('metadata.album', 'title');
+    const album = await Album.findById(albumId).select(
+      '_id title picture releaseDate artist',
+    );
 
-    if (audios.length === 0) {
-      return res.status(404).send({message: 'No audios found for this album'});
+    if (!album) {
+      return res.status(404).send({message: 'Album not found'});
     }
 
-    res.json(audios);
+    const artist = await Artist.findById(album.artist);
+    const audios = await Audio.find({'metadata.album': albumId}).select(
+      'filename metadata.genre',
+    );
+
+    const response = {
+      _id: album._id,
+      title: album.title,
+      picture: album.picture,
+      releaseDate: album.releaseDate,
+      artistId: artist._id,
+      artistName: artist.name,
+      audios: audios.map(audio => ({
+        _id: audio._id,
+        title: audio.filename,
+        genre: audio.metadata.genre,
+      })),
+    };
+
+    res.json(response);
   } catch (err) {
+    console.error('Error occurred: ', err.message);
     res.status(500).send({message: err.message});
   }
 };
