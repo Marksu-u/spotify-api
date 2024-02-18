@@ -69,24 +69,34 @@ export const getLastAlbum = async (req, res) => {
   }
 };
 
-export const getAlbumWithAudios = async (req, res) => {
-  const albumId = req.params.id;
-  try {
-    const albums = await Album.findById(albumId)
-      .populate('artist', 'name')
-      .populate('audio', 'title');
-    res.json(albums);
-  } catch (err) {
-    res.status(500).send({message: err.message});
-  }
-};
-
 export const getSingleAlbum = async (req, res) => {
   try {
     const albumId = req.params.id;
     const album = await Album.findById(albumId);
-    res.json(album);
+    if (!album) {
+      return res.status(404).send({message: 'Album not found'});
+    }
+
+    const artist = await Artist.findById(album.artist).select('_id name');
+    if (!artist) {
+      return res.status(404).send({message: 'Artist not found'});
+    }
+
+    const albumDetail = {
+      _id: album._id,
+      title: album.title,
+      picture: album.picture,
+      releaseDate: album.releaseDate,
+      genre: album.genre,
+      artist: {
+        _id: artist._id,
+        name: artist.name,
+      },
+    };
+
+    res.json(albumDetail);
   } catch (err) {
+    console.error('Error occurred: ', err.message);
     res.status(500).send({message: err.message});
   }
 };
@@ -94,29 +104,38 @@ export const getSingleAlbum = async (req, res) => {
 export const editAlbum = async (req, res) => {
   try {
     const albumId = req.params.id;
-    const {title, artistId, releaseDate, genre} = req.body;
-
+    const updateData = req.body;
     const album = await Album.findById(albumId);
     if (!album) {
-      return res.status(404).send({message: 'Album not found'});
+      return res.status(404).json({message: 'Album not found'});
     }
 
-    album.title = title;
-    album.artist = artistId;
-    album.releaseDate = releaseDate;
-    album.genre = genre;
+    if (updateData.title) {
+      album.title = updateData.title;
+    }
+    if (updateData.artistId) {
+      album.artist = updateData.artistId;
+    }
+    if (updateData.releaseDate) {
+      album.releaseDate = updateData.releaseDate;
+    }
+    if (updateData.genre) {
+      album.genre = updateData.genre;
+    }
 
     if (req.file) {
       const newPictureData = {
         data: fs.readFileSync(req.file.path),
-        format: req.file.mimetype,
+        contentType: req.file.mimetype,
       };
-      album.picture = [newPictureData];
+      album.picture = newPictureData;
     }
+
     await album.save();
-    res.status(200).send({message: 'Album updated successfully', album});
+
+    res.json({message: 'Album updated successfully', album});
   } catch (err) {
-    res.status(500).send({message: err.message});
+    res.status(500).json({message: err.message});
   }
 };
 

@@ -1,6 +1,5 @@
 import AWS from 'aws-sdk';
 import dotenv from 'dotenv';
-import mm from 'music-metadata';
 import fs from 'fs';
 import path from 'path';
 import {fileURLToPath} from 'url';
@@ -15,7 +14,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 const s3 = new AWS.S3();
 
-Ffmpeg.setFfmpegPath('/opt/homebrew/Cellar/ffmpeg/6.0_1/bin/ffmpeg');
+Ffmpeg.setFfmpegPath('/opt/homebrew/Cellar/ffmpeg/6.1.1_2/bin/ffmpeg');
 
 export const getAudios = async (req, res) => {
   try {
@@ -128,10 +127,38 @@ export const getAudiosByAlbum = async (req, res) => {
 export const getSingleAudio = async (req, res) => {
   try {
     const audioId = req.params.id;
-    const audio = await Audio.findById(audioId)
-      .populate('metadata.artist', 'name')
-      .populate('metadata.album', 'title');
-    res.json(audio);
+    const singleAudio = await Audio.findById(audioId);
+
+    if (!singleAudio) {
+      return res.status(404).send({message: 'No audio found'});
+    }
+
+    const album = await Album.findById(singleAudio.metadata.album).select(
+      '_id title picture releaseDate artist',
+    );
+
+    if (!album) {
+      return res.status(404).send({message: 'Album not found for the audio'});
+    }
+
+    const artist = await Artist.findById(album.artist);
+    const audioDetail = {
+      _id: album._id,
+      title: album.title,
+      picture: album.picture,
+      releaseDate: album.releaseDate,
+      artistId: artist._id,
+      name: artist.name,
+      audios: [
+        {
+          _id: singleAudio._id,
+          title: singleAudio.filename,
+          genre: singleAudio.metadata.genre,
+        },
+      ],
+    };
+
+    res.json(audioDetail);
   } catch (err) {
     res.status(500).send({message: err.message});
   }
@@ -141,21 +168,19 @@ export const editAudio = async (req, res) => {
   try {
     const audioId = req.params.id;
     const updateData = req.body;
-    const audio = await Audio.findById(audioId);
 
+    const audio = await Audio.findById(audioId);
     if (!audio) {
       return res.status(404).send({message: 'Audio not found'});
     }
 
-    if (updateData.filename) audio.filename = updateData.filename;
-    if (updateData.s3Key) audio.s3Key = updateData.s3Key;
+    if (updateData.title) {
+      audio.filename = updateData.title;
+    }
 
-    const metadataFields = ['album', 'artist', 'date', 'genre', 'picture'];
-    metadataFields.forEach(field => {
-      if (updateData[field]) {
-        audio.metadata[field] = updateData[field];
-      }
-    });
+    if (updateData.albumId) {
+      audio.metadata.album = updateData.albumId;
+    }
 
     await audio.save();
 
@@ -196,13 +221,22 @@ export const deleteAudio = async (req, res) => {
 export const uploadAudio = async (req, res) => {
   try {
     const file = req.file;
-    const {common} = await mm.parseFile(file.path).then(metadata => metadata);
+    console.log(file.path);
+    const audioFilename = req.body.title;
+    const albumID = req.body.albumId;
 
-    const existingAudio = await Audio.findOne({filename: file.originalname});
+    const existingAudio = await Audio.findOne({filename: audioFilename});
 
     if (existingAudio) {
       fs.unlinkSync(file.path);
       res.status(400).json({message: 'Audio already exists in the database'});
+      return;
+    }
+
+    const album = await Album.findById(albumID);
+    if (!album) {
+      fs.unlinkSync(file.path);
+      res.status(404).json({message: 'Album not found'});
       return;
     }
 
@@ -219,53 +253,19 @@ export const uploadAudio = async (req, res) => {
         .save(outputFilePath);
     });
 
-    const artistName = common.artist || 'Various Artists';
-    const albumTitle = common.album || 'Unknown Album';
-    const audioGenre = common.genre || 'Unknown Genre';
-    const audioDate = common.date || '1900';
-
-    const artist = await Artist.findOneAndUpdate(
-      {name: artistName},
-      {name: artistName},
-      {upsert: true, new: true},
-    );
-
-    const album = await Album.findOneAndUpdate(
-      {title: albumTitle, artist: artist._id},
-      {
-        title: albumTitle,
-        artist: artist._id,
-        picture: common.picture?.length
-          ? {
-              data: common.picture[0].data,
-              format: common.picture[0].format,
-            }
-          : {
-              data: fs.readFileSync(path.join(__dirname, '../assets/404.jpeg')),
-              format: 'image/jpeg',
-            },
-        releaseDate: new Date(audioDate),
-        genre: audioGenre,
-      },
-      {upsert: true, new: true},
-    );
+    const artist = await Artist.findById(album.artist);
 
     const newAudio = new Audio({
-      filename: file.originalname,
+      filename: audioFilename,
       metadata: {
         album: album._id,
         artist: artist._id,
-        date: audioDate,
-        genre: audioGenre,
-        picture: common.picture?.length
-          ? {
-              data: common.picture[0].data,
-              format: common.picture[0].format,
-            }
-          : {
-              data: fs.readFileSync(path.join(__dirname, '../assets/404.jpeg')),
-              format: 'image/jpeg',
-            },
+        date: album.releaseDate,
+        genre: album.genre,
+        picture: album.picture || {
+          data: fs.readFileSync(path.join(__dirname, '../assets/404.jpeg')),
+          format: 'image/jpeg',
+        },
       },
     });
     await newAudio.save();
