@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 const s3 = new AWS.S3();
 
-Ffmpeg.setFfmpegPath('/opt/homebrew/Cellar/ffmpeg/6.1.1_2/bin/ffmpeg');
+Ffmpeg.setFfmpegPath('/usr/bin/ffmpeg');
 
 export const getAudios = async (req, res) => {
   try {
