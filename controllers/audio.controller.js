@@ -295,7 +295,8 @@ export const uploadAudio = async (req, res) => {
           console.error('FFmpeg Output:', stdout);
           console.error('FFmpeg Error Output:', stderr);
           reject(err);
-        })        
+        })
+        .addOption('-vn')
         .save(outputFilePath);
     });
 
