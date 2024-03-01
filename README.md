@@ -38,7 +38,11 @@ UN LIEN YOUTUBE S'IL VOUS PLAÎT, METTEZ-LA EN PRIVÉ
 
 Demande 1 : BackOffice - CRUD
 
+<<<<<<< Updated upstream
 Demande 2 : BackOffice - Recherche & Pagination
+=======
+Demande 2 : [BackOffice - Recherche & Pagination](https://www.youtube.com/watch?v=FQwNYmBZzMw)
+>>>>>>> Stashed changes
 
 Demande 3 : FrontOffice - Lecture
 

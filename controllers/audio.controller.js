@@ -290,10 +290,12 @@ export const uploadAudio = async (req, res) => {
         .audioCodec('aac')
         .toFormat('ipod')
         .on('end', resolve)
-        .on('error', err => {
-          console.error('Error during conversion:', err);
+        .on('error', (err, stdout, stderr) => {
+          console.error('FFmpeg Error:', err.message);
+          console.error('FFmpeg Output:', stdout);
+          console.error('FFmpeg Error Output:', stderr);
           reject(err);
-        })
+        })        
         .save(outputFilePath);
     });
 
