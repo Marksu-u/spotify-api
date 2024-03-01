@@ -43,6 +43,7 @@
     "music-metadata": "^7.14.0",
     "path": "^0.12.7",
     "redis": "^4.6.11",
+    "socket.io": "^4.7.4",
     "winston": "^3.11.0"
   },
   "devDependencies": {

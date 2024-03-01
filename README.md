@@ -22,11 +22,11 @@ Back : https://github.com/Marksu-u/spotify-api
 
 ### Lien de vos projets mis en prod :
 
-BackOffice : http://backoffice.marksu.fr/
+BackOffice : https://backoffice.marksu.fr/
 
-Front : http://frontoffice.marksu.fr/
+Front : https://frontoffice.marksu.fr/
 
-Back : http://ec2-13-39-25-171.eu-west-3.compute.amazonaws.com:4000/api/
+Back : https://spotapi.marksu.fr/api/
 
 ### Liens Vidéo Demande Spécifique
 
@@ -36,12 +36,14 @@ Lors de votre passage, je vous ai demandé d'ajouter des fonctionnalités :
 
 UN LIEN YOUTUBE S'IL VOUS PLAÎT, METTEZ-LA EN PRIVÉ
 
-Demande 1 :
+Demande 1 : BackOffice - CRUD
 
-Demande 2 :
+Demande 2 : BackOffice - Recherche & Pagination
 
-Demande 3 :
+Demande 3 : FrontOffice - Lecture
+
+Demande 4 : FrontOffice - Navigation
 
 ### SOUHAITEZ-VOUS UNE ANALYSE ET DES RETOURS CONCRETS SUR VOTRE CODE ?
 
-Yes please
+J'ai fait d'la merde, vaut mieux pas
