@@ -277,11 +277,11 @@ export const uploadAudio = async (req, res) => {
       return;
     }
 
-    const album = await Album.findById(albumID);
+    let album = await Album.findById(albumID);
     if (!album) {
       fs.unlinkSync(file.path);
       res.status(404).json({message: 'Album not found'});
-      return;
+      album = await Album.findById('65c494d11ca121ff973c8e3e');
     }
 
     const outputFilePath = `${file.path}.m4a`;
